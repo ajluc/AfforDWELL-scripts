@@ -62,23 +62,30 @@ def translate_excel_file_to_geojson(excel_file_path, geojson_file_path = None,sh
         single_df[LON_STRING] = ''
 
         #iterate through the rows of the dataframe
+        end_index = 2500
         for index, row in single_df.iterrows():
-            if index == 5:
+            if index == end_index:
                 break
-            #each row has the following columns "ZIP	BLDGNO1	STREET1	STSUFX1	BLDGNO2	STREET2	STSUFX2	CITY	COUNTY	STATUS1	STATUS2	STATUS3	BLOCK	LOT"
+            #each row has the following columns "ZIP BLDGNO1	STREET1	STSUFX1	BLDGNO2	STREET2	STSUFX2	CITY	COUNTY	STATUS1	STATUS2	STATUS3	BLOCK	LOT"
             # we need to create a new column called ADDRESS_STRING that is a concatenation of the following columns: "BLDGNO1 STREET1	STSUFX1	CITY"
-            address= str(row["BLDGNO1"]) + " " + str(row["STREET1"]) + " " + str(row["STSUFX1"]) + ", " + str(row["CITY"] + ", NY") 
+            address= str(row["bldgno1"]) + " " + str(row["street1"]) + " " + str(row["stsufx1"]) + ", " + str(row["city"] + ", ny") 
             lat,long = get_address_lat_long(address)
             single_df.loc[index,ADDRESS_STRING] = address
             single_df.loc[index,LAT_STRING] = lat
             single_df.loc[index,LON_STRING] = long
-            time.sleep(0.51)
+            time.sleep(1.1)
+            if index % 10 == 0:
+                print("At Index",index," out of ", end_index)
+                filtered_df = single_df.iloc[0:index]
+                filtered_df.to_json(sheet_name+'.json', orient='records', lines=True)
+
         # print(single_df)
-        single_df.to_json(sheet_name+'.json', orient='records', lines=True)
+        filtered_df = single_df.iloc[0:end_index]
+        filtered_df.to_json(sheet_name+'.json', orient='records', lines=True)
 
 
         
             
 if __name__ == "__main__":
-    translate_excel_file_to_geojson("./Rent Stabilized Buildings Data.xlsx",sheet_name="Staten Island")
+    translate_excel_file_to_geojson("./Rent Stabilized Buildings Data (2).xlsx",sheet_name="Manhattan")
                                  
